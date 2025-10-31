@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lactancia — App educativa</title>
+  <meta name="description" content="Guía y registro de lactancia materna — app educativa y registro con calendario" />
+  <style>
+    /* ---------- Variables / Reset ---------- */
+    :root{
+      --bg: #fbfbfd;
+      --card: #ffffff;
+      --accent: #e9579a; /* rosa moderno */
+      --accent-2: #7f8cff; /* azul suave */
+      --muted: #6b6b6b;
+      --glass: rgba(255,255,255,0.7);
+      --radius: 14px;
+      --shadow: 0 8px 24px rgba(19,19,26,0.06);
+      --glass-shadow: 0 6px 18px rgba(31,31,39,0.06);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family: Inter, "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,#fff 0%,#fbf7fb 100%);
+      color:#222; -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding-bottom:60px;
+    }
+
+    /* ---------- Top bar ---------- */
+    header.appbar{
+      position:sticky; top:0; z-index:40;
+      background:linear-gradient(90deg,var(--card),#fff);
+      border-bottom:1px solid rgba(0,0,0,0.04);
+      backdrop-filter: blur(6px);
+    }
+    .appbar-inner{
+      max-width:1100px;margin:auto;display:flex;gap:12px;align-items:center;
+      padding:12px 18px;
+    }
+    .brand{
+      display:flex;gap:12px;align-items:center;
+    }
+    .logo{
+      width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;
+      box-shadow:var(--shadow);
+    }
+    .title{font-weight:700;color:#2b2b2b}
+    .subtitle{font-size:13px;color:var(--muted)}
+
+    /* ---------- Layout ---------- */
+    main{max-width:1100px;margin:20px auto;padding:12px;}
+    .layout{display:grid;grid-template-columns:1fr 420px;gap:18px;}
+    @media(max-width:980px){ .layout{grid-template-columns:1fr; padding:0 12px} .rightcol{order:2} }
+
+    /* ---------- Cards ---------- */
+    .card{
+      background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;
+    }
+    h2{color:var(--accent);margin-bottom:8px}
+    h3{color:#444;margin-bottom:6px}
+    p,li{line-height:1.5;color:#333}
+
+    /* ---------- Navigation pill ---------- */
+    .navpills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .pill{background:transparent;padding:8px 12px;border-radius:999px;border:1px solid rgba(200,200,200,0.35);cursor:pointer;font-weight:600;color:var(--muted)}
+    .pill:active,.pill.active{background:linear-gradient(90deg,#fff, rgba(255,255,255,0.7));border-color:rgba(216,91,143,0.12);color:var(--accent)}
+
+    /* ---------- Info sections styling ---------- */
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:900px){ .info-grid{grid-template-columns:1fr} }
+
+    ul{margin-left:18px;margin-top:8px}
+    ol{margin-left:18px;margin-top:8px}
+
+    /* ---------- Calendar ---------- */
+    .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .month-controls{display:flex;gap:8px;align-items:center}
+    .btn{
+      padding:8px 12px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;font-weight:700;cursor:pointer;
+      box-shadow:var(--glass-shadow)
+    }
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(200,200,200,0.25)}
+    .calendar{
+      display:grid;grid-template-columns:repeat(7,1fr);gap:8px;
+    }
+    .weekday{font-size:12px;color:var(--muted);text-align:center}
+    .day{
+      background:linear-gradient(180deg,#fff,#fff);padding:10px;border-radius:10px;min-height:80px;position:relative;border:1px solid rgba(0,0,0,0.03);
+      cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;
+    }
+    .day .num{font-weight:700;color:#222}
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--accent);position:absolute;right:8px;bottom:8px}
+    .day.today{outline:2px solid rgba(233,87,154,0.12)}
+    .day.has{background:linear-gradient(180deg,#fef2f8,#fff0f6);box-shadow:0 6px 18px rgba(233,87,154,0.06)}
+
+    /* ---------- Right column controls ---------- */
+    .rightcol .card{margin-bottom:14px}
+    form.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+    @media(max-width:480px){ form.row{grid-template-columns:1fr} }
+
+    input[type="date"], input[type="time"], input[type="number"], textarea{
+      width:100%;padding:10px;border-radius:10px;border:1px solid #eee;background:#fff;font-size:14px;
+    }
+    .actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+    /* ---------- Day list ---------- */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px solid #f2f2f4;text-align:left;font-size:14px}
+    td.actions{text-align:right}
+    .tiny{font-size:13px;color:var(--muted)}
+
+    /* ---------- Footer ---------- */
+    footer{max-width:1100px;margin:18px auto;text-align:center;color:var(--muted);font-size:13px;padding:8px}
+  </style>
+</head>
+<body>
+
+<header class="appbar">
+
+
+
+<main>
+  <div class="layout">
+
+    <!-- LEFT: Info sections -->
+    <div>
+
+      <section id="infoSection" class="card">
+        <h2>Bienvenida</h2>
+        <p>Esta app educativa te ofrece información clara para mamás primerizas y un calendario interactivo para llevar un seguimiento sencillo de las tomas — hora y cantidad en ml. Todo se guarda localmente en tu navegador.</p>
+
+        <div class="navpills" style="margin-top:12px">
+          <button class="pill" onclick="document.getElementById('benefits').scrollIntoView()">Beneficios</button>
+          <button class="pill" onclick="document.getElementById('checklist').scrollIntoView()">Checklist</button>
+          <button class="pill" onclick="document.getElementById('howto').scrollIntoView()">Cómo amamantar</button>
+          <button class="pill" onclick="document.getElementById('primeras').scrollIntoView()">Consejos</button>
+          <button class="pill" onclick="document.getElementById('caremilk').scrollIntoView()">Cuidado leche</button>
+          <button class="pill" onclick="document.getElementById('sources').scrollIntoView()">Fuentes</button>
+        </div>
+      </section>
+
+      <section id="benefits" class="card">
+        <h2>Beneficios y riesgos</h2>
+
+        <h3>Beneficios para el bebé</h3>
+        <ul>
+          <li>Anticuerpos y nutrientes que ayudan a prevenir infecciones.</li>
+          <li>Mejora el desarrollo cognitivo y la microbiota intestinal.</li>
+          <li>Disminuye riesgos de obesidad, diabetes y alergias.</li>
+        </ul>
+
+        <h3>Beneficios para la madre</h3>
+        <ul>
+          <li>Ayuda a la recuperación postparto y a la contracción uterina.</li>
+          <li>Reduce riesgo de ciertos cánceres (mama y ovario).</li>
+          <li>Refuerza el vínculo emocional madre-hijo.</li>
+        </ul>
+
+        <h3>Posibles dificultades</h3>
+        <ul>
+          <li>Dolor, grietas en pezones por mala técnica.</li>
+          <li>Congestión mamaria o mastitis por vaciado insuficiente.</li>
+          <li>Fatiga emocional y física sin apoyo adecuado.</li>
+        </ul>
+      </section>
+
+      <section id="checklist" class="card">
+        <h2>Checklist para extracción</h2>
+        <ul>
+          <li>Extractor de leche: manual o eléctrico.</li>
+          <li>Recipientes limpios: frascos de vidrio o bolsas especiales.</li>
+          <li>Etiquetas con fecha y hora.</li>
+          <li>Higiene: manos limpias, toallas, esterilizador.</li>
+          <li>Conservación: refrigerador, congelador o hielera.</li>
+          <li>Comodidad: cojín de lactancia, silla cómoda, agua cerca.</li>
+        </ul>
+      </section>
+
+      <section id="howto" class="card">
+        <h2>Cómo amamantar correctamente</h2>
+        <ol>
+          <li>Busca un espacio cómodo y apoya la espalda.</li>
+          <li>Posición: alinea cabeza, cuello y cuerpo del bebé hacia ti.</li>
+          <li>Agarre: boca bien abierta, abarcando pezón y areola.</li>
+          <li>Succión efectiva: ritmo lento y profundo; sin dolor.</li>
+          <li>Alternar pechos en distintas tomas.</li>
+          <li>Fin de la toma: bebé se suelta solo o rompe vacío suavemente.</li>
+        </ol>
+      </section>
+
+      <section id="primeras" class="card">
+        <h2>Consejos para mamás primerizas</h2>
+        <ul>
+          <li>Busca apoyo desde el inicio.</li>
+          <li>No te frustres: la práctica ayuda mucho.</li>
+          <li>Hidrátate y come bien.</li>
+          <li>Descansa cuando el bebé duerma.</li>
+          <li>Registra tomas para detectar patrones.</li>
+        </ul>
+      </section>
+
+      <section id="caremilk" class="card">
+        <h2>Cuidado y conservación de la leche</h2>
+        <ul>
+          <li>Lávate las manos antes de manipular frascos o bolsas.</li>
+          <li>Usa recipientes limpios; esteriliza si es necesario.</li>
+          <li>Etiqueta con fecha y hora. Consume primero la leche más antigua.</li>
+          <li>Temperaturas: ambiente ≤25°C (4h), refrigerador 0–4°C (3d), congelador -18°C (3–6m).</li>
+          <li>Descongelar en refrigerador o agua tibia, nunca microondas.</li>
+        </ul>
+      </section>
+
+      <section id="sources" class="card">
+        <h2>📚 Fuentes confiables</h2>
+        <p>Si deseas profundizar o consultar información oficial sobre lactancia materna:</p>
+        <ul>
+          <li><a href="https://www.who.int/es/news-room/fact-sheets/detail/infant-and-young-child-feeding" target="_blank">OMS — Lactancia materna</a></li>
+          <li><a href="https://www.unicef.org/lac/temas/lactancia-materna" target="_blank">UNICEF Latinoamérica</a></li>
+          <li><a href="https://www.cdc.gov/breastfeeding/index.htm" target="_blank">CDC — Lactancia materna</a></li>
+          <li><a href="https://www.mayoclinic.org/es-es/healthy-lifestyle/infant-and-toddler-health/in-depth/breastfeeding/art-20046968" target="_blank">Mayo Clinic — Guía de lactancia</a></li>
+          <li><a href="https://www.healthychildren.org/English/ages-stages/baby/breastfeeding/Pages/default.aspx" target="_blank">American Academy of Pediatrics</a></li>
+        </ul>
+        <p class="tiny">Información confiable y detallada sobre lactancia y cuidado del bebé.</p>
+      </section>
+
+    </div>
+
+    <!-- RIGHT: Calendar & Controls -->
+    <aside class="rightcol">
+      <div class="card">
+        <div class="month-nav">
+          <div><strong id="monthLabel"></strong></div>
+          <div class="month-controls">
+            <button class="btn ghost" id="prevBtn">◀</button>
+            <button class="btn ghost" id="todayBtn">Hoy</button>
+            <button class="btn ghost" id="nextBtn">▶</button>
+          </div>
+        </div>
+
+        <div class="calendar" id="calendar"></div>
+      </div>
+
+      <div class="card">
+        <h3>Registrar / Editar toma</h3>
+        <form id="formRegistro">
+          <div style="margin-bottom:10px">
+            <label class="tiny">Fecha</label>
+            <input type="date" id="inpFecha" required>
+          </div>
+          <div style="margin-bottom:10px">
+            <label class="tiny">Hora</label>
+            <input type="time" id="inpHora" required>
+          </div>
+          <div style="margin-bottom:10px">
+            <label class="tiny">Cantidad (ml)</label>
+            <input type="number" id="inpCantidad" min="1" placeholder="Ej: 90" required>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button type="button" id="cancelEdit" class="btn ghost" style="display:none">Cancelar</button>
+            <button type="submit" id="saveBtn" class="btn">Guardar</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Registros del día</h3>
+        <div id="metaDay" class="tiny" style="margin-bottom:8px"></div>
+        <table id="tableDay">
+          <thead><tr><th>Hora</th><th>Cantidad</th><th class="tiny">Acción</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p id="totalDay" class="tiny" style="margin-top:8px"></p>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<footer>
+  <div>Hecho para mamás — Datos guardados localmente en tu navegador • No sustituye consejo médico</div>
+</footer>
+
+<script>
+/* ---------- UTIL ---------- */
+function iso(d){ return d.toISOString().split('T')[0]; }
+function nowIso(){ return iso(new Date()); }
+function key(d){ return d; } // clave localStorage YYYY-MM-DD
+
+/* ---------- ESTADO ---------- */
+let current = new Date();
+let selectedDate = nowIso();
+let editing = null;
+const calendarEl = document.getElementById('calendar');
+const monthLabel = document.getElementById('monthLabel');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const todayBtn = document.getElementById('todayBtn');
+
+const inpFecha = document.getElementById('inpFecha');
+const inpHora = document.getElementById('inpHora');
+const inpCantidad = document.getElementById('inpCantidad');
+const formRegistro = document.getElementById('formRegistro');
+const cancelEdit = document.getElementById('cancelEdit');
+const saveBtn = document.getElementById('saveBtn');
+
+const tableBody = document.querySelector('#tableDay tbody');
+const totalDayEl = document.getElementById('totalDay');
+const metaDay = document.getElementById('metaDay');
+
+/* ---------- CALENDAR RENDER ---------- */
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+
+function renderCalendar(date){
+  calendarEl.innerHTML = '';
+  const start = startOfMonth(date);
+  const end = endOfMonth(date);
+  monthLabel.textContent = date.toLocaleString('es-ES',{month:'long',year:'numeric'});
+
+  const weekdays = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  weekdays.forEach(w => { let el = document.createElement('div'); el.className='weekday'; el.textContent=w; calendarEl.appendChild(el); });
+
+  const startDay = (start.getDay()+6)%7; // lunes=0
+  for(let i=0;i<startDay;i++){ let el=document.createElement('div'); calendarEl.appendChild(el); }
+
+  for(let d=1; d<=end.getDate(); d++){
+    const dayDate = new Date(date.getFullYear(), date.getMonth(), d);
+    const isoD = iso(dayDate);
+    const el = document.createElement('div');
+    el.className='day';
+    if(isoD===nowIso()) el.classList.add('today');
+
+    let records = JSON.parse(localStorage.getItem(key(isoD))||'[]');
+    if(records.length>0) el.classList.add('has');
+
+    el.innerHTML = `<div class="num">${d}</div>`;
+    el.onclick = ()=>{selectedDate=isoD; inpFecha.value=isoD; renderDay(); };
+    calendarEl.appendChild(el);
+  }
+}
+prevBtn.onclick=()=>{current.setMonth(current.getMonth()-1); renderCalendar(current);}
+nextBtn.onclick=()=>{current.setMonth(current.getMonth()+1); renderCalendar(current);}
+todayBtn.onclick=()=>{current=new Date(); renderCalendar(current); selectedDate=nowIso(); inpFecha.value=nowIso(); renderDay();}
+
+/* ---------- DAY RECORDS ---------- */
+function renderDay(){
+  let data = JSON.parse(localStorage.getItem(key(selectedDate))||'[]');
+  tableBody.innerHTML='';
+  let total=0;
+  data.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.hora}</td><td>${r.cantidad} ml</td>
+      <td class="actions">
+        <button class="btn ghost" onclick="editRecord(${i})">✏️</button>
+        <button class="btn ghost" onclick="deleteRecord(${i})">🗑️</button>
+      </td>`;
+    tableBody.appendChild(tr);
+    total+=parseInt(r.cantidad);
+  });
+  totalDayEl.textContent=`Total ml hoy: ${total}`;
+  metaDay.textContent=`Registros para ${selectedDate}: ${data.length}`;
+}
+function saveRecord(hora,cantidad){
+  let data = JSON.parse(localStorage.getItem(key(selectedDate))||'[]');
+  if(editing!==null){ data[editing]={hora,cantidad}; editing=null; cancelEdit.style.display='none'; }
+  else{ data.push({hora,cantidad}); }
+  localStorage.setItem(key(selectedDate),JSON.stringify(data));
+  formRegistro.reset(); renderCalendar(current); renderDay();
+}
+function editRecord(i){
+  let data = JSON.parse(localStorage.getItem(key(selectedDate))||'[]');
+  inpHora.value=data[i].hora; inpCantidad.value=data[i].cantidad;
+  editing=i; cancelEdit.style.display='inline-block';
+}
+function deleteRecord(i){
+  let data = JSON.parse(localStorage.getItem(key(selectedDate))||'[]');
+  if(confirm('¿Eliminar este registro?')) { data.splice(i,1); localStorage.setItem(key(selectedDate),JSON.stringify(data)); renderCalendar(current); renderDay();}
+}
+cancelEdit.onclick=()=>{editing=null; formRegistro.reset(); cancelEdit.style.display='none';}
+formRegistro.onsubmit=e=>{e.preventDefault(); saveRecord(inpHora.value, inpCantidad.value);}
+
+renderCalendar(current);
+inpFecha.value=selectedDate;
+renderDay();
+</script>
+
+</body>
+</html>
